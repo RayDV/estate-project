@@ -25,7 +25,8 @@ app.listen(3000, () => {
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 
-// function that eliminates error handling for all routes:
+// middleware that eliminates error handling for all routes. 
+// Using the middlware by passing the parameter next to the function in auth.controller.js:
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
