@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 // This component handles the sign-up process for new users
 export default function SignUp() {
   // State to keep track of the form data entered by the user
-  const [formData, setFormData] = useState({})
+  const [formData, setFormData] = useState({});
   // State to keep track of the form data entered by the user
   const [error, setError] = useState(null);
   // State to indicate whether a sign-up request is in progress
@@ -12,15 +12,13 @@ export default function SignUp() {
   // Hook to navigate programmatically after a successful sign-up
   const navigate = useNavigate();
 
-  // Function to handle changes in the input fields  
+  // Function to handle changes in the input fields
   const handleChange = (e) => {
     // Update the form data state with the new value from the input field
-    setFormData(
-      {
-        ...formData,
-        [e.target.id]: e.target.value,
-      }
-    );
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
   };
 
   // Function to handle form submission
@@ -29,15 +27,15 @@ export default function SignUp() {
     try {
       setLoading(true); // Set loading state to true while the request is in progress
       const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData), // Send the form data as JSON
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData), // Send the form data as JSON
       });
       const data = await res.json(); // Parse the JSON response
-      if(data.success === false) {
-        setLoading(false) // Set loading state to false
+      if (data.success === false) {
+        setLoading(false); // Set loading state to false
         setError(data.message); // Set error state with the error message
         return;
       }
@@ -53,19 +51,40 @@ export default function SignUp() {
 
   return (
     <div className="p-3 max-w-lg mx-auto">
-      <h1 className="text-3xl text-center font-semibold
+      <h1
+        className="text-3xl text-center font-semibold
       my-7"
-      >Sign up</h1>
+      >
+        Sign up
+      </h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input type="text" placeholder="username"
-          className="border p-3 rounded-lg" id="username" onChange={handleChange}/>
-        <input type="email" placeholder="email"
-          className="border p-3 rounded-lg" id="email" onChange={handleChange}/>
-        <input type="password" placeholder="password"
-          className="border p-3 rounded-lg" id="password" onChange={handleChange}/>
-        <button disabled={loading} className="bg-slate-700 text-white p-3
+        <input
+          type="text"
+          placeholder="username"
+          className="border p-3 rounded-lg"
+          id="username"
+          onChange={handleChange}
+        />
+        <input
+          type="email"
+          placeholder="email"
+          className="border p-3 rounded-lg"
+          id="email"
+          onChange={handleChange}
+        />
+        <input
+          type="password"
+          placeholder="password"
+          className="border p-3 rounded-lg"
+          id="password"
+          onChange={handleChange}
+        />
+        <button
+          disabled={loading}
+          className="bg-slate-700 text-white p-3
         rounded-lg uppercase hov:opacity-95 
-        desiabled:opacity-80">
+        desiabled:opacity-80"
+        >
           {loading ? "Loading..." : "sign Up"}
         </button>
       </form>
