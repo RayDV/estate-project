@@ -8,30 +8,68 @@ import {
 import { app } from '../firebase';
 import { set } from 'mongoose';
 
+/**
+ * CreateListing Component
+ *
+ * This component allows users to create a new listing with image uploads.
+ * It manages form data, handles image uploads, and manages upload errors.
+ * 
+ * Key States:
+ * - files: Holds the files selected for upload.
+ * - formData: Holds the form data including image URLs.
+ * - imageUploadError: Tracks any errors that occur during the image upload process.
+ * - uploading: Indicates if the upload process is currently in progress.
+ * 
+ * Key Functions:
+ * - handleImageSubmit: Handles the submission of images, uploading them to Firebase Storage and updating the form data.
+ */
 export default function CreateListing() {
+  // State to hold selected files for upload
   const [files, setFiles] = useState([]);
+  // State to hold form data, initializing with an empty array for image URLs
   const [formData, setFormData] = useState({
     imageUrls: [],
   });
+  // State to track image upload errors
   const [imageUploadError, setImageUploadError] = useState(false);
+  // State to indicate if the upload process is in progress
   const [uploading, setUploading] = useState(false);
+  // Log form data for debugging purposes
   console.log(formData);
+
+  /**
+   * Handles the image submission process.
+   * 
+   * This function performs the following steps:
+   * 1. Validates the number of files selected and the total number of images.
+   * 2. Sets the uploading state to true and clears any previous errors.
+   * 3. Creates an array of promises, each representing the upload of a file to Firebase Storage.
+   * 4. Uses Promise.all to wait for all uploads to complete.
+   * 5. Updates the formData state with the URLs of the uploaded images if successful.
+   * 6. Handles errors by setting the appropriate error message and resetting the uploading state.
+   * 
+   * @param {Event} e - The event object from the form submission.
+   */
   const handleImageSubmit = (e) => {
     if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
       setUploading(true);
-      setImageUploadError(false);
-      const promises = [];
+      setImageUploadError(false); // Clear any previous upload errors
+      const promises = []; // Initialize an array to hold upload promises
 
+      // Create a promise for each file upload
       for (let i = 0; i < files.length; i++) {
-        promises.push(storeImage(files[i]));
+        promises.push(storeImage(files[i])); // Add the upload promise to the array
       }
+
+      // Wait for all upload promises to resolve
       Promise.all(promises)
+        // On success, update form data with new image URLs
         .then((urls) => {
           setFormData({
-            ...formData,
-            imageUrls: formData.imageUrls.concat(urls),
+            ...formData, // Spread existing form data
+            imageUrls: formData.imageUrls.concat(urls), // Add new image URLs
           });
-          setImageUploadError(false);
+          setImageUploadError(false); // Clear any errors
           setUploading(false);
         })
         .catch((err) => {
@@ -39,42 +77,89 @@ export default function CreateListing() {
           setUploading(false);
         });
     } else {
+      // If no files to upload or image limit exceeded, set an error message
       setImageUploadError('You can only upload 6 images per listing');
-      setUploading(false);
+      setUploading(false); // Set uploading state to false
     }
   };
 
+  /**
+  * Uploads a file to Firebase Storage and returns a promise that resolves with the download URL.
+  *
+  * This function performs the following steps:
+  * 1. Generates a unique file name by combining the current timestamp with the original file name.
+  * 2. Creates a reference (path/address) in Firebase Storage where the file will be stored.
+  * 3. Starts the file upload to the specified location and monitors the upload progress.
+  * 4. Resolves the promise with the download URL once the upload is complete.
+  * 5. Rejects the promise if an error occurs during the upload.
+  *
+  * @param file (File) - The file to be uploaded.
+  * @returns Promise<string> - A promise that resolves with the download URL of the uploaded file.
+  */
   const storeImage = async (file) => {
     return new Promise((resolve, reject) => {
+      // Step 1: Get Firebase Storage instance
       const storage = getStorage(app);
+
+      // Step 2: Generate a unique file name by combining the current timestamp with the original file name
+      // This creates a unique identifier for the file, preventing naming conflicts
       const fileName = new Date().getTime() + file.name;
+
+      // Step 3: Create a reference (address) to the file's location in Firebase Storage
+      // A reference is like an address pointing to where the file will be stored in the storage system
+      // Aha Moment: This is similar to memory allocation and addressing in computer science, instead, we create a unique path to store data
       const storageRef = ref(storage, fileName);
+
+      // Step 4: Start the file upload to the specified location
+      // uploadBytesResumable starts the upload and allows us to monitor its progress
       const uploadTask = uploadBytesResumable(storageRef, file);
+
+      // Step 5: Set up listeners to monitor the file upload process
       uploadTask.on(
-        'state_changed',
-        (snapshot) => {
+        'state_changed', // Listen for changes in the upload state
+        (snapshot) => {  // Progress handler: Called periodically during the upload
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           console.log(`Upload is ${progress}% done`);
         },
-        (error) => {
-          reject(error);
+        (error) => { // Error handler: Called if an error occurs during the upload
+          reject(error); // Reject the promise if an error occurs, passing the error to the caller 
         },
         () => {
+          // Get the download URL once the upload is complete and resolve the promise with this URL
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            resolve(downloadURL);
+            resolve(downloadURL); // Resolve the promise with the download URL
           });
         }
       );
     });
   };
 
+  /**
+  * Removes an image URL from the imageUrls array in the formData state based on the specified index.
+  *
+  * This function uses the filter method to create a new array that includes all image URLs except
+  * the one at the specified index. It then updates the formData state with this new array, ensuring
+  * that the original array remains unchanged and the state is immutably updated.
+  *
+  * Parameters:
+  *   index (number) - The index of the image URL to be removed from the imageUrls array.
+  *
+  * Example:
+  *   If formData.imageUrls is ['img1.jpg', 'img2.jpg', 'img3.jpg'] and index is 1,
+  *   the new array will be ['img1.jpg', 'img3.jpg'] as 'img2.jpg' at index 1 is removed.
+  * 
+  * In plain English, (_, i) => i !== index means:
+	*	“For each element in the array, take its index i, then check if i is not equal to the specified index. 
+  *  If it is not equal, keep the element; otherwise, exclude it.”
+  */
   const handleRemoveImage = (index) => {
     setFormData({
       ...formData,
       imageUrls: formData.imageUrls.filter((_, i) => i !== index),
     });
   };
+  // JSX code here:
   return (
     <main className='p-3 max-w-4xl mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>
