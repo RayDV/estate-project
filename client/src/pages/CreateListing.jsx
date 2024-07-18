@@ -25,8 +25,7 @@ import { useNavigate } from "react-router-dom";
  * - handleImageSubmit: Handles the submission of images, uploading them to Firebase Storage and updating the form data.
  */
 export default function CreateListing() {
-
-  const {currentUser} = useSelector(state => state.user);
+  const { currentUser } = useSelector((state) => state.user);
 
   const navigate = useNavigate();
   // State to hold selected files for upload
@@ -51,9 +50,9 @@ export default function CreateListing() {
   // State to indicate if the upload process is in progress
   const [uploading, setUploading] = useState(false);
 
-  const[error, setError] = useState(false);
+  const [error, setError] = useState(false);
 
-  const[loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Log form data for debugging purposes
   console.log(formData);
@@ -183,13 +182,30 @@ export default function CreateListing() {
     });
   };
 
+  /**
+   * handleChange Function
+   *
+   * This function handles changes to form inputs and updates the formData state accordingly.
+   * It specifically handles changes to inputs with IDs "sale", "rent", "parking", "furnished", "offer",
+   * and inputs of type "number", "text", or "textarea".
+   *
+   * Key Functionality:
+   * - Updates the form data based on the type of input that triggered the event.
+   * - For "sale" and "rent" inputs, it sets the type in the formData.
+   * - For "parking", "furnished", and "offer" inputs, it sets the corresponding boolean value based on whether the checkbox is checked.
+   * - For inputs of type "number", "text", or "textarea", it sets the corresponding value in the formData.
+   *
+   * @param {Event} e - The event object from the input change.
+   */
   const handleChange = (e) => {
+    // Check if the input ID is "sale" or "rent"
     if (e.target.id === "sale" || e.target.id === "rent") {
       setFormData({
-        ...formData,
-        type: e.target.id,
+        ...formData, // Spread existing form data
+        type: e.target.id, // Set the type to the ID of the input ("sale" or "rent")
       });
     }
+    // Check if the input ID is "parking", "furnished", or "offer"
     if (
       e.target.id === "parking" ||
       e.target.id === "furnished" ||
@@ -197,44 +213,63 @@ export default function CreateListing() {
     ) {
       setFormData({
         ...formData,
-        // Adding brakcets will get the actual variable and not the literal string
+
         [e.target.id]: e.target.checked,
       });
     }
-
+    // Check if the input type is "number", "text", or "textarea"
     if (
       e.target.type === "number" || // sometimes our numbers will be in strings. We don't have to worry since MongoDB can sort it out.
       e.target.type === "text" ||
       e.target.type === "textarea"
     ) {
       setFormData({
-        ...formData,
-        [e.target.id]: e.target.value,
+        ...formData, // Spread existing form data
+        [e.target.id]: e.target.value, // Set the value to the input's current value. We surround it with '[]' becuase it will get the actual variable not literal. We are using a hashtable. id is key and value is, well, value
       });
     }
   };
-
+  /**
+   * handleSubmit Function
+   *
+   * This function handles the submission of the form to create a new listing. It performs validation checks,
+   * sends a POST request to the backend to create the listing, and handles the response.
+   *
+   * Key Functionality:
+   * - Prevents the default form submission behavior.
+   * - Validates that at least one image has been uploaded.
+   * - Validates that the discount price is lower than the regular price.
+   * - Sends a POST request to create the listing in the database.
+   * - Handles the response from the backend and navigates to the new listing's page.
+   *
+   * @param {Event} e - The event object from the form submission.
+  */
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    // We will request for the database to add whatever is in the form data
+    e.preventDefault(); // Prevent the default form submission behavior
     try {
-      if(formData.imageUrls.length < 1 ) return setError("You must upload at least one page image");
+      if (formData.imageUrls.length < 1)
+        return setError("You must upload at least one page image");
+
       // Sometimes in our input these will be a string, so we convert them into numbers by doing so:
-      if(+formData.regularPrice < +formData.discountPrice) return setError("Discount price must be lower than Regular price");
-      setLoading(true);
-      setError(false);
+      if (+formData.regularPrice < +formData.discountPrice)
+        return setError("Discount price must be lower than Regular price");
+
+      setLoading(true); // Set loading state to true
+      setError(false); // Clear any previous errors
+
+      // Send a POST request to create the listing in the database
       const res = await fetch("/api/listing/create", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json", // Specify the content type as JSON
         },
         body: JSON.stringify({
-          ...formData,
-          userRef: currentUser._id,
+          ...formData, // Spread the form data
+          userRef: currentUser._id, // Add the current user's ID to the form data
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json(); // Parse the JSON response
       setLoading(false);
 
       if (data.success === false) {
@@ -245,7 +280,7 @@ export default function CreateListing() {
       setError(error.message);
       setLoading(false);
     }
-  }
+  };
   // JSX code here:
   return (
     <main className="p-3 max-w-4xl mx-auto">
@@ -378,7 +413,7 @@ export default function CreateListing() {
                 <span className="text-xs">($ / month)</span>
               </div>
             </div>
-            
+
             {formData.offer && (
               <div className="flex items-center gap-2">
                 <input
@@ -447,7 +482,10 @@ export default function CreateListing() {
                 </button>
               </div>
             ))}
-          <button disabled={loading || uploading} className="p-3 bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
+          <button
+            disabled={loading || uploading}
+            className="p-3 bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
+          >
             {loading ? "Createing..." : "Create listing"}
           </button>
           {error && <p className="text-red-700 text-sm">{error}</p>}
