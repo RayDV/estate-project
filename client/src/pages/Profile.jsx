@@ -127,23 +127,43 @@ export default function Profile() {
     }
   };
 
+  /**
+   * handleShowListings Function
+   *
+   * This function handles retrieving the current user's listings from the server. It sends a GET request to the server
+   * to fetch the listings for the current user. Upon success, it updates the user listings state with the retrieved data.
+   * If an error occurs, it sets an error state to true.
+   */
   const handleShowListings = async () => {
     try {
+      // Clear any previous error states before making the request
       setShowListingsError(false);
+
+      // Send a GET request to the server to retrieve listings for the current user
       const res = await fetch(`/api/user/listings/${currentUser._id}`);
       const data = await res.json();
       if (data.success === false) {
         setShowListingsError(true);
         return;
       }
+      // Update the user listings state with the retrieved data
       setUserListings(data);
     } catch (error) {
       setShowListingsError(true);
     }
   };
 
+  /**
+   * handleListingDelete Function
+   *
+   * This function handles the deletion of a listing. It sends a DELETE request to the server to remove the listing
+   * with the specified listing ID. Upon successful deletion, it updates the user listings state to reflect the change.
+   *
+   * @param {string} listingID - The ID of the listing to be deleted.
+   */
   const handleListingDelete = async (listingID) => {
     try {
+      // Send a DELETE request to the server to delete the listing with the specified listingID
       const res = await fetch(`/api/listing/delete/${listingID}`, {
         method: "DELETE",
       });
@@ -152,7 +172,7 @@ export default function Profile() {
         console.log(data.message);
         return;
       }
-
+      // Update the user listings state to remove the deleted listing
       setUserListings((prev) =>
         prev.filter((listing) => listing._id !== listingID)
       );
