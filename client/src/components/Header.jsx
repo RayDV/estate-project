@@ -13,7 +13,6 @@ import { useEffect, useState } from "react";
     <span>: An HTML element used to group or style parts of a text within a document without introducing
                 any structural changes
             - It allows us to style specific parts of text within a block of content
-        
 */
 }
 
