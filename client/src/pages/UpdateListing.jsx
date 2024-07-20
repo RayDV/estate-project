@@ -28,7 +28,7 @@ export default function CreateListing() {
   const { currentUser } = useSelector((state) => state.user);
 
   const navigate = useNavigate();
-    // Let's us use paramaters to fetch listing from the correct id in the URL
+  // Let's us use paramaters to fetch listing from the correct id in the URL
   const params = useParams();
 
   // State to hold selected files for upload
@@ -62,16 +62,16 @@ export default function CreateListing() {
 
   useEffect(() => {
     const fetchListing = async () => {
-        const listingId = params.listingId;
-        const res = await fetch(`/api/listing/get/${listingId}`);
-        const data = await res.json();
+      const listingId = params.listingId;
+      const res = await fetch(`/api/listing/get/${listingId}`);
+      const data = await res.json();
 
-        if (data.success === false) {
-            console.log(data.message);
-            return;
-        }
-        setFormData(data)
-    }
+      if (data.success === false) {
+        console.log(data.message);
+        return;
+      }
+      setFormData(data);
+    };
     fetchListing();
   }, []);
 
@@ -261,7 +261,7 @@ export default function CreateListing() {
    * - Handles the response from the backend and navigates to the new listing's page.
    *
    * @param {Event} e - The event object from the form submission.
-  */
+   */
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent the default form submission behavior
     try {
@@ -428,7 +428,9 @@ export default function CreateListing() {
               />
               <div className="flex flex-col items-center">
                 <p>Regular price</p>
-                <span className="text-xs">($ / month)</span>
+                {formData.type === "rent" && (
+                  <span className="text-xs">($ / month)</span>
+                )}
               </div>
             </div>
 
@@ -446,7 +448,9 @@ export default function CreateListing() {
                 />
                 <div className="flex flex-col items-center">
                   <p>Discounted price</p>
-                  <span className="text-xs">($ / month)</span>
+                  {formData.type === "rent" && (
+                    <span className="text-xs">($ / month)</span>
+                  )}
                 </div>
               </div>
             )}
