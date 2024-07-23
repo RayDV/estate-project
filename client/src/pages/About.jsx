@@ -2,7 +2,7 @@ import React from "react";
 
 export default function About() {
   return (
-    <div py-20 px-4 max-w-6xl mx-auto>
+    <div className="py-20 px-4 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-4 text-slate-800">About DeVera Estate</h1>
       <p className="mb-4 text-slate-700">
         DeVera Estate is a premier real estate company dedicated to providing
